@@ -11,6 +11,7 @@ class Mario(pg.sprite.Sprite):
         self.sprite_sheet = setup.graphics
         self.setup_timers()
         self.state = c.WALK
+        self.current_time = pg.time.Clock()
         # self.image =
 
     def setup_timer(self):
@@ -343,4 +344,204 @@ class Mario(pg.sprite.Sprite):
         elif (self.current_time - self.death_timer) > 500:
             self.rect.y += self.y_vel
             self.y_vel += self.gravity
+
+    def adjust_rec(self):
+        x = self.rect.x
+        bottom = self.rect.bottom
+        self.rect = self.image.get_rect()
+
+        self.rect.x = x
+        self.rect.bottom = bottom
+
+    def become_small(self):
+        self.big = False
+        self.right_frames = self.right_small_normal_frames
+        self.left_frames = self.left_small_normal_frames
+
+        bottom = self.rect.bottom
+        left = self.rect.x
+
+        image = self.right_frames[0]
+        self.rect = image.get_rect()
+
+        self.rect.bottom = bottom
+        self.rect.x = left
+
+
+    def become_big(self):
+        self.big = True
+        self.right_frames = self.right_big_normal_frames
+        self.left_frames = self.left_big_normal_frames
+
+        bottom = self.rect.bottom
+        left = self.rect.x
+
+        image = self.right_frames[0]
+
+        self.rect = image.get_rect()
+        self.rect.bottom = bottom
+        self.rect.x = left
+
+    def check_if_crouching(self):
+        if self.crouching and self.big:
+            bottom = self.rect.bottom
+
+            left = self.rect.x
+
+            if self.facing_right:
+                self.image = self.right_frames[2] # TODO Write index
+            else:
+                self.image = self.left_frames[2] # TODO write index
+
+            self.rect = self.image.get_rect()
+            self.rect.bottom = bottom
+            self.rect.x = left
+
+
+    def animation(self):
+        if self.state == c.DEATH_JUMP or self.state == c.SMALL_TO_BIG or self.state == c.BIG_TO_SMALL or self.crouching:
+            pass
+
+        elif self.facing_right:
+            self.image = self.right_frames[self.frame_index]
+        else:
+            self.image = self.left_frames[self.frame_index]
+
+
+    def changing_to_big(self):
+        self.is_transition_state = True
+
+        if self.trasition_timer == 0:
+            self.transition_timer = self.current_time
+
+        elif self.timer_between_two_times(135, 200):
+            self.set_mario_to_small_image()
+        elif self.timer_between_two_times(365, 400):
+            self.set_mario_to_middle_image()
+        elif self.timer_between_two_times(650, 750):
+            self.set_mario_to_middle_image()
+        elif self.timer_between_two_times(820, 900):
+            self.set_mario_to_big_image()
+            self.state = c.WALK
+            self.is_transition_state = False
+            self.transition_timer = 0
+            self.become_big()
+
+    def set_mario_to_middle_image(self):
+        if self.facing_right:
+            self.image = self.normal_small_frames[0][7] # TODO set index
+
+        else:
+            self.image = self.normal_small_frames[1][7] # TODO set index
+
+        bottom = self.rect.bottom
+        centerx = self.rect.centerx
+        self.rect = self.image.get_rect()
+
+        self.rect.bottom = bottom
+        self.rect.centerx = centerx
+
+    def set_mario_to_small_image(self):
+        if self.facing_right:
+            self.image = self.normal_small_frames[0][0]  # TODO set index
+
+        else:
+            self.image = self.normal_small_frames[1][0]  # TODO set index
+
+        bottom = self.rect.bottom
+        centerx = self.rect.centerx
+        self.rect = self.image.get_rect()
+
+        self.rect.bottom = bottom
+        self.rect.centerx = centerx
+
+
+    def set_mario_to_big_image(self):
+        if self.facing_right:
+            self.image = self.normal_big_frames[0][0]  # TODO set index
+
+        else:
+            self.image =  self.normal_big_frames[1][0]  # TODO set index
+
+        bottom = self.rect.bottom
+        centerx = self.rect.centerx
+        self.rect = self.image.get_rect()
+
+        self.rect.bottom = bottom
+        self.rect.centerx = centerx
+
+    def timer_between_two_times(self, S, E):
+        if (self.current_time - self.transition_timer) >= S \
+            and (self.current_time - self.transition_timer) <= E:
+            return True
+
+        return False
+
+    def changing_to_small(self):
+        self.is_transition_state = True
+        self.hurt_invincible = True
+
+        self.state = c.BIG_TO_SMALL
+        if self.facing_right:
+            frames = [
+                self.right_big_normal_frames[4], # TODO set index
+                self.right_big_normal_frames[8], # TODO set index
+                self.right_small_normal_frames[8], #TODO Set index
+            ]
+        else:
+            frames = [
+                self.left_big_normal_frames[4],  # TODO set index
+                self.left_big_normal_frames[8],  # TODO set index
+                self.left_small_normal_frames[8],  # TODO Set index
+
+            ]
+        if self.transition_timer == 0:
+            self.transition_timer = self.current_time
+
+        elif (self.current_time - self.transition_timer) < 250:
+            self.image = frames[0]
+            self.huty_invincible_check()
+            self.adjust_rec()
+
+        elif (self.current_time - self.transition_timer) < 220:
+            self.image = frames[1]
+            self.huty_invincible_check()
+            self.adjust_rec()
+        elif (self.current_time - self.transition_timer) < 400:
+            self.image = frames[2]
+            self.huty_invincible_check()
+            self.adjust_rec()
+
+        elif (self.current_time - self.transition_timer) < 460:
+            self.image = frames[2]
+            self.huty_invincible_check()
+            self.adjust_rec()
+
+        elif (self.current_time - self.transition_timer) < 590:
+            self.image = frames[1]
+            self.huty_invincible_check()
+            self.adjust_rec()
+        elif (self.current_time - self.transition_timer) < 650:
+            self.image = frames[2]
+            self.huty_invincible_check()
+            self.adjust_rec()
+        elif (self.current_time - self.transition_timer) < 720:
+            self.image = frames[1]
+            self.huty_invincible_check()
+            self.adjust_rec()
+            self.is_transition_state = False
+            self.state = c.WALK
+            self.big = False
+            self.transition_timer = 0
+            self.hurt_invincible = 0
+            self.become_small()
+
+    def huty_invincible_check(self):
+        if self.hurt_invincible == 0:
+            self.hurt_invincible = self.current_time
+        elif (self.current_time - self.hurt_invincible) < 35:
+            self.image.set_alpha(0)
+        elif (self.current_time - self.hurt_invincible) < 70:
+            self.image.set_alpha(255)
+            self.hurt_invincible = self.current_time
 
