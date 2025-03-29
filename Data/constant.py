@@ -8,9 +8,9 @@ FROZEN = 'frozen'
 NOT_FROZEN = 'not frozen'
 IN_CASTLE = 'in castle'
 FLAG_AND_FIREWORKS = 'flag and fireworks'
-
-
-
+BACKGROUND_MULTIPLIER = 1
+CAMERA_START_X = 'camera_start_x'
+GROUND_HEIGHT = 250
 WALK = 'walk'
 STAND = 'stand'
 JUMP = 'jump'
